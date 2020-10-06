@@ -16,6 +16,7 @@ runs:
           VERSION=${{ inputs.version }}
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
+      shell: bash
     - name: determine-binary
       run: |
         case "${{ runner.os }}" in
@@ -24,9 +25,12 @@ runs:
           #macOS) BINARY=yq_darwin_amd64
         esac
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
+      shell: bash
     - name: install
       run: |
         sudo wget -q -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY" &&
         chmod +x /usr/local/bin/yq
+      shell: bash
     - name: verify
       run: yq --version
+      shell: bash
