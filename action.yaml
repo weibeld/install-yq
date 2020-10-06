@@ -13,7 +13,12 @@ runs:
         if [[ "${{ inputs.version }}" = latest ]]; then
           VERSION=$(wget -q -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest | jq -r .tag_name)
         else
-          VERSION=${{ inputs.version }}
+          if ! curl "$GITHUB_API_URL"/repos/mikefarah/yq/releases | jq -r '.[].tag_name' | grep -q '^${{ inputs.version }}'; then
+            echo -e "Error: ${{ inputs.version }} is not a valid version of yq\nFind available versions on https://github.com/mikefarah/yq/releases"
+            exit 1
+          else
+            VERSION=${{ inputs.version }}
+          fi
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
       shell: bash
@@ -28,7 +33,7 @@ runs:
       shell: bash
     - name: install
       run: |
-        sudo wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY" &&
+        sudo wget -q -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY" &&
         sudo chmod +x /usr/local/bin/yq
       shell: bash
     - name: verify
