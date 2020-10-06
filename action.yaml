@@ -8,6 +8,9 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: check-os
+      run: [[ "${{ runner.os }}" = Windows ]] && { echo "Error: this action currently does not support Windows runners"; exit 1; }
+      shell: bash
     - name: determine-version
       run: |
         if [[ "${{ inputs.version }}" = latest ]]; then
