@@ -27,9 +27,8 @@ runs:
     - name: determine-binary
       run: |
         case "${{ runner.os }}" in
-          Linux) BINARY=yq_linux_amd64
-          # TODO: test on macOS runner
-          macOS) BINARY=yq_darwin_amd64
+          Linux) BINARY=yq_linux_amd64 ;;
+          macOS) BINARY=yq_darwin_amd64 ;;
         esac
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
       shell: bash
