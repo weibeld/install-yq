@@ -11,7 +11,7 @@ runs:
     - name: determine-version
       run: |
         if [[ "${{ inputs.version }}" = latest ]]; then
-          VERSION=$(curl "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest | jq -r .tag_name)
+          VERSION=$(wget -q -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest | jq -r .tag_name)
         else
           VERSION=${{ inputs.version }}
         fi
