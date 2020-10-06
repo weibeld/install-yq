@@ -9,8 +9,7 @@ runs:
   using: composite
   steps:
     - name: check-os
-      run: |
-        [[ "${{ runner.os }}" = Windows ]] && { echo "This action currently does not support Windows runners"; exit 1; }
+      run: test "${{ runner.os }}" = Windows && { echo "This action currently does not support Windows runners"; exit 1; } || exit 0
       shell: bash
     - name: determine-version
       run: |
