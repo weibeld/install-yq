@@ -28,7 +28,7 @@ runs:
       shell: bash
     - name: install
       run: |
-        sudo wget -q -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY" &&
+        sudo wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY" &&
         sudo chmod +x /usr/local/bin/yq
       shell: bash
     - name: verify
