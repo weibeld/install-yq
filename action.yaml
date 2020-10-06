@@ -37,5 +37,11 @@ runs:
         sudo chmod +x /usr/local/bin/yq
       shell: bash
     - name: verify
-      run: yq --version
+      run: |
+        if out=$(yq 2>&1); then
+          echo "Installation successful: $(yq --version)"
+        else
+          echo "Installation failed: $out"
+          exit 1
+        fi
       shell: bash
