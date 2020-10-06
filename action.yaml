@@ -26,7 +26,7 @@ runs:
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
     - name: install
       run: |
-        sudo wget -q -O "/usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/$VERSION/$BINARY" &&
+        sudo wget -q -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY" &&
         chmod +x /usr/local/bin/yq
     - name: verify
       run: yq --version
