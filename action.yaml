@@ -1,0 +1,32 @@
+name: Install yq
+description: Installs mikefarah/yq on the runner so that it can be used by subsequent steps.
+author: Daniel Weibel
+inputs:
+  version:
+    description: The version of yq to use (by default, the latest version is used).
+    default: latest
+runs:
+  using: composite
+  steps:
+    - name: determine-version
+      run: |
+        if [[ "${{ inputs.version }}" = latest ]]; then
+          VERSION=$(curl https://api.github.com/repos/mikefarah/yq/releases/latest | jq -r .tag_name)
+        else
+          VERSION=${{ inputs.version }}
+        fi
+        echo "VERSION=$VERSION" >>"$GITHUB_ENV"
+    - name: determine-binary
+      run: |
+        case "${{ runner.os }}" in
+          Linux) BINARY=yq_linux_amd64
+          # TODO: test on macOS runner
+          #macOS) BINARY=yq_darwin_amd64
+        esac
+        echo "BINARY=$BINARY" >>"$GITHUB_ENV"
+    - name: install
+      run: |
+        sudo wget -q -O "/usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/$VERSION/$BINARY" &&
+        chmod +x /usr/local/bin/yq
+    - name: verify
+      run: yq --version
