@@ -10,12 +10,13 @@ runs:
   steps:
     - name: determine-version
       run: |
-        set -e
         if [[ "${{ inputs.version }}" = latest ]]; then
-          VERSION=$(curl -s "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest | jq -r .tag_name)
+          out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest) || { echo "Error: $out"; exit 1; }
+          VERSION=$(echo "$out" | jq -r .tag_name)
         else
-          if ! curl -s "$GITHUB_API_URL"/repos/mikefarah/yq/releases | jq -r '.[].tag_name' | grep -q '^${{ inputs.version }}$'; then
-            echo -e "Error: ${{ inputs.version }} is not a valid version of yq\nFind available versions on https://github.com/mikefarah/yq/releases"
+          out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || { echo "Error: $out"; exit 1; }
+          if ! echo "$out" | jq -r '.[].tag_name' | grep -q '^${{ inputs.version }}$'; then
+            echo -e "Error: ${{ inputs.version }} is not a valid yq version\nFind available versions on https://github.com/mikefarah/yq/releases"
             exit 1
           else
             VERSION=${{ inputs.version }}
