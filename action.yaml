@@ -15,9 +15,9 @@ runs:
     - name: commons
       run: |
         file=$(mktemp)
-        cat <<EOF >"$file"
+        cat <<'EOF' >"$file"
         fail() {
-          echo "::error::\$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g'
+          echo "::error::$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g'
           exit 1
         }
         EOF
@@ -29,31 +29,32 @@ runs:
       run: |
         . "$COMMONS"
         if [[ "${{ runner.os }}" = Windows ]]; then
-          fail "This action currently does not support Windows runners"
+          fail "This action currently does not support Windows runners."
         fi
       shell: bash
 
     - name: determine-version
       run: |
+        . "$COMMONS"
         VERSION="${{ inputs.version }}"
         if [[ -z "$VERSION" ]]; then
           # Determine latest version
-          out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest) || { echo "$out"; exit 1; }
-          VERSION=$(echo "$out" | jq -r .tag_name)
+          stdout=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest) || fail "GitHub API request failed: $stdout"
+          VERSION=$(echo "$stdout" | jq -r .tag_name)
         else
           # Verify user-supplied version
-          out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || { echo "$out"; exit 1; }
-          if ! echo "$out" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
-            echo -e "\"$VERSION\" is not a valid yq version (find valid versions on <https://github.com/mikefarah/yq/releases>)"
-            exit 1
+          stdout=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || fail "GitHub API request failed: $stdout"
+          if ! echo "$stdout" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
+            fail "$VERSION is not a valid yq version (see https://github.com/mikefarah/yq/releases for the list of valid versions)."
           fi
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
-        echo "Using yq version \"$VERSION\""
+        echo "Using yq version $VERSION"
       shell: bash
 
     - name: determine-binary
       run: |
+        . "$COMMONS"
         BINARY="${{ inputs.binary }}"
         if [[ -z "$BINARY" ]]; then
           # Use default binaries
@@ -63,29 +64,26 @@ runs:
           esac
         else
           # Verify user-supplied binary
-          out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/"$VERSION") || { echo "$out"; exit 1; }
-          if ! echo "$out" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
-            echo -e "\"$BINARY\" is not a valid binary of yq $VERSION (find existing binaries on <https://github.com/mikefarah/yq/releases/$VERSION>)"
-            exit 1
+          stdout=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/"$VERSION") || fail "GitHub API request failed: $stdout"
+          if ! echo "$stdout" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
+            fail "$BINARY is not a valid binary of yq $VERSION (see https://github.com/mikefarah/yq/releases/$VERSION for the list of valid binaries)."
           fi
         fi
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
-        echo "Using yq binary \"$BINARY\""
+        echo "Using yq binary $BINARY"
       shell: bash
 
     - name: install
       run: |
         url=https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY"
-        echo "Installing yq $VERSION from $url"
+        echo "Installing yq from $url"
         sudo wget -q -O /usr/local/bin/yq "$url" && sudo chmod +x /usr/local/bin/yq
       shell: bash
 
     - name: verify
       run: |
+        . "$COMMONS"
         echo "Verifying installation"
-        if ! stderr=$(yq 2>&1 >/dev/null); then
-          echo "::error::$stderr"
-          exit 1
-        fi
+        stderr=$(yq 2>&1 >/dev/null) || fail "Verification of yq instllation failed: $stderr"
         echo "Installation of yq successful"
       shell: bash
