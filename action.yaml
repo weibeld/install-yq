@@ -48,12 +48,12 @@ runs:
         VERSION="${{ inputs.version }}"
         if [[ -z "$VERSION" ]]; then
           # Determine latest version
-          stdout=$(api /repos/mikefarah/yq/releases/latest 2>&1) || fail "GitHub API request failed: $stdout"
-          VERSION=$(echo "$stdout" | jq -r .tag_name)
+          out=$(api /repos/mikefarah/yq/releases/latest 2>&1) || fail "GitHub API request failed: $out"
+          VERSION=$(echo "$out" | jq -r .tag_name)
         else
           # Verify user-supplied version
-          stdout=$(api /repos/mikefarah/yq/releases 2>&1) || fail "GitHub API request failed: $stdout"
-          if ! echo "$stdout" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
+          out=$(api /repos/mikefarah/yq/releases 2>&1) || fail "GitHub API request failed: $out"
+          if ! echo "$out" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
             fail "$VERSION is not a valid yq version (see https://github.com/mikefarah/yq/releases for the list of valid versions)"
           fi
         fi
@@ -74,8 +74,8 @@ runs:
           esac
         else
           # Verify user-supplied binary
-          stdout=$(api /repos/mikefarah/yq/releases/tags/${{ steps.version.outputs.version }} 2>&1) || fail "GitHub API request failed: $stdout"
-          if ! echo "$stdout" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
+          out=$(api /repos/mikefarah/yq/releases/tags/${{ steps.version.outputs.version }} 2>&1) || fail "GitHub API request failed: $out"
+          if ! echo "$out" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
             fail "$BINARY is not a valid binary of yq ${{ steps.version.outputs.version }} (see https://github.com/mikefarah/yq/releases/${{ steps.version.outputs.version }} for the list of valid binaries)"
           fi
         fi
@@ -87,6 +87,7 @@ runs:
       run: |
         url=https://github.com/mikefarah/yq/releases/download/${{ steps.version.outputs.version }}/${{ steps.binary.outputs.binary }}
         echo "Installing yq from $url"
+        # TODO: install to user directory and adapt PATH (avoid reliance on passwordless sudo)
         sudo wget -q -O /usr/local/bin/yq "$url" && sudo chmod +x /usr/local/bin/yq
       shell: bash
 
