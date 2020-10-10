@@ -25,12 +25,11 @@ runs:
           exit 1
         }
         api() {
-          args=(-q --content-on-error -O -)
-          [[ "${{ inputs.github-token }}" ]] && args+=(--header "Authorization: Token ${{ inputs.github-token }}")
-          wget "${args[@]}" "$GITHUB_API_URL$1"
+          args=(-s -S -f)
+          [[ "${{ inputs.github-token }}" ]] && args+=(-H "Authorization: Token ${{ inputs.github-token }}")
+          curl "${args[@]}" "$GITHUB_API_URL$1"
         }
         EOF
-        cat "$file"
         echo "::set-output name=util::$file"
       shell: bash
  
