@@ -51,7 +51,7 @@ runs:
           if ! echo "$out" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
             echo -e "$BINARY is not a valid binary of yq release $VERSION (find existing binaries on https://github.com/mikefarah/yq/releases/$VERSION)"
             exit 1
-          else
+          fi
         fi
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
       shell: bash
