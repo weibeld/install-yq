@@ -21,6 +21,7 @@ runs:
           exit 1
         }
         EOF
+        cat "$file"
         echo "COMMONS=$file" >>"$GITHUB_ENV"
       shell: bash
  
