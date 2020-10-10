@@ -28,7 +28,7 @@ runs:
       run: |
         . "$COMMONS"
         if [[ "${{ runner.os }}" = Windows ]]; then
-          fail "This action currently does not support Windows runners."
+          fail "This action currently does not support Windows runners"
         fi
       shell: bash
 
@@ -44,7 +44,7 @@ runs:
           # Verify user-supplied version
           stdout=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || fail "GitHub API request failed: $stdout"
           if ! echo "$stdout" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
-            fail "$VERSION is not a valid yq version (see https://github.com/mikefarah/yq/releases for the list of valid versions)."
+            fail "$VERSION is not a valid yq version (see https://github.com/mikefarah/yq/releases for the list of valid versions)"
           fi
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
@@ -65,7 +65,7 @@ runs:
           # Verify user-supplied binary
           stdout=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/"$VERSION") || fail "GitHub API request failed: $stdout"
           if ! echo "$stdout" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
-            fail "$BINARY is not a valid binary of yq $VERSION (see https://github.com/mikefarah/yq/releases/$VERSION for the list of valid binaries)."
+            fail "$BINARY is not a valid binary of yq $VERSION (see https://github.com/mikefarah/yq/releases/$VERSION for the list of valid binaries)"
           fi
         fi
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
@@ -83,6 +83,6 @@ runs:
       run: |
         . "$COMMONS"
         echo "Verifying installation"
-        stderr=$(yq 2>&1 >/dev/null) || fail "Verification of yq instllation failed: $stderr"
+        stderr=$(yq 2>&1 >/dev/null) || fail "Installation verification failed: $stderr"
         echo "Installation of yq successful"
       shell: bash
