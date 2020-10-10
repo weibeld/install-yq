@@ -5,6 +5,9 @@ inputs:
   version:
     description: The version of yq to install (by default, the latest version will be installed)
     required: false
+  binary:
+    description: The name of the yq binary to install (by default, 'yq_linux_amd64' and 'yq_darwin_amd64' are installed for Linux and macOS runners, respectively)
+    required: false
 runs:
   using: composite
   steps:
@@ -19,11 +22,12 @@ runs:
           # Determine latest version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest) || { echo "$out"; exit 1; }
           VERSION=$(echo "$out" | jq -r .tag_name)
+          echo "Latest yq version is $VERSION"
         else
           # Verify user-supplied version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || { echo "$out"; exit 1; }
           if ! echo "$out" | jq -r '.[].tag_name' | grep -q '^${{ inputs.version }}$'; then
-            echo -e "${{ inputs.version }} is not a valid yq version (find available versions on https://github.com/mikefarah/yq/releases)"
+            echo -e "${{ inputs.version }} is not a valid yq version (find existing versions on https://github.com/mikefarah/yq/releases)"
             exit 1
           else
             VERSION=${{ inputs.version }}
@@ -34,10 +38,21 @@ runs:
 
     - name: determine-binary
       run: |
-        case "${{ runner.os }}" in
-          Linux) BINARY=yq_linux_amd64 ;;
-          macOS) BINARY=yq_darwin_amd64 ;;
-        esac
+        if [[ -z "${{ inputs.binary }}" ]]; then
+          # Use default binaries
+          case "${{ runner.os }}" in
+            Linux) BINARY=yq_linux_amd64 ;;
+            macOS) BINARY=yq_darwin_amd64 ;;
+          esac
+        else
+          # Verify user-supplied binary
+          BINARY="${{ inputs.binary }}"
+          out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/"$VERSION") || { echo "$out"; exit 1; }
+          if ! echo "$out" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
+            echo -e "$BINARY is not a valid binary of yq release $VERSION (find existing binaries on https://github.com/mikefarah/yq/releases/$VERSION)"
+            exit 1
+          else
+        fi
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
       shell: bash
 
