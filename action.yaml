@@ -62,9 +62,9 @@ runs:
 
     - name: install
       run: |
-        url=/usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY"
+        url=https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY"
         echo "Install $url"
-        sudo wget -q -O "$url" && sudo chmod +x /usr/local/bin/yq
+        sudo wget -q -O /usr/local/bin/yq "$url" && sudo chmod +x /usr/local/bin/yq
       shell: bash
 
     - name: verify
