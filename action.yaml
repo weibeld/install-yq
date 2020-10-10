@@ -14,9 +14,10 @@ runs:
   
     - name: check-os
       run: |
-        . "${{ github.actions_path }}"/commons.sh
+        . "${{ github.action_path }}"/commons.sh
         if [[ "${{ runner.os }}" = Windows ]]; then
-          fail("This action currently does not support Windows runners")
+          echo "This action currently does not support Windows runners"
+          exit 1
         fi
       shell: bash
 
