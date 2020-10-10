@@ -44,7 +44,7 @@ runs:
     - name: determine-version
       id: version
       run: |
-        . "${{ steps.util.outputs.util }}"
+        . ${{ github.action_path }}/commons.sh
         VERSION="${{ inputs.version }}"
         if [[ -z "$VERSION" ]]; then
           # Determine latest version
