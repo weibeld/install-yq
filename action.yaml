@@ -23,7 +23,6 @@ runs:
           # Determine latest version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest) || { echo "$out"; exit 1; }
           VERSION=$(echo "$out" | jq -r .tag_name)
-          echo "Latest yq version is $VERSION"
         else
           # Verify user-supplied version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || { echo "$out"; exit 1; }
