@@ -13,32 +13,36 @@ runs:
   steps:
 
     - name: check-os
-      run: test "${{ runner.os }}" = Windows && { echo "This action currently does not support Windows runners"; exit 1; } || exit 0
+      run: |
+        if [[ "${{ runner.os }}" = Windows ]]; then
+          echo "This action currently does not support Windows runners"
+          exit 1
+        fi
       shell: bash
 
     - name: determine-version
       run: |
-        if [[ -z "${{ inputs.version }}" ]]; then
+        VERSION="${{ inputs.version }}"
+        if [[ -z "$VERSION" ]]; then
           # Determine latest version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest) || { echo "$out"; exit 1; }
           VERSION=$(echo "$out" | jq -r .tag_name)
         else
           # Verify user-supplied version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || { echo "$out"; exit 1; }
-          if ! echo "$out" | jq -r '.[].tag_name' | grep -q '^${{ inputs.version }}$'; then
-            echo -e "${{ inputs.version }} is not a valid yq version (find existing versions on https://github.com/mikefarah/yq/releases)"
+          if ! echo "$out" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
+            echo -e "'$VERSION' is not a valid yq version (find valid versions on <https://github.com/mikefarah/yq/releases>)"
             exit 1
-          else
-            VERSION=${{ inputs.version }}
           fi
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
-        echo "Using yq version $VERSION"
+        echo "Using yq version '$VERSION'"
       shell: bash
 
     - name: determine-binary
       run: |
-        if [[ -z "${{ inputs.binary }}" ]]; then
+        BINARY="${{ inputs.binary }}"
+        if [[ -z "$BINARY" ]]; then
           # Use default binaries
           case "${{ runner.os }}" in
             Linux) BINARY=yq_linux_amd64 ;;
@@ -46,15 +50,14 @@ runs:
           esac
         else
           # Verify user-supplied binary
-          BINARY="${{ inputs.binary }}"
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/"$VERSION") || { echo "$out"; exit 1; }
           if ! echo "$out" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
-            echo -e "$BINARY is not a valid binary of yq version $VERSION (find existing binaries on 'https://github.com/mikefarah/yq/releases/$VERSION')"
+            echo -e "'$BINARY' is not a valid binary of yq version $VERSION (find existing binaries on <https://github.com/mikefarah/yq/releases/$VERSION>)"
             exit 1
           fi
         fi
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
-        echo "Using yq binary $BINARY"
+        echo "Using yq binary '$BINARY'"
       shell: bash
 
     - name: install
@@ -71,5 +74,5 @@ runs:
           echo "::error::$stderr"
           exit 1
         fi
-        echo "Installation successful"
+        echo "Installation of yq $VERSION successful"
       shell: bash
