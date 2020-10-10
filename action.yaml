@@ -11,10 +11,21 @@ inputs:
 runs:
   using: composite
   steps:
-  
+ 
+    - name: commons
+      run: |
+        file=$(mktemp)
+        cat <<EOF >"$file"
+        fail() {
+          echo "::error::$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g'
+          exit 1
+        }
+        EOF
+        echo "COMMONS=$file" >>"$GITHUB_ENV"
+ 
     - name: check-os
       run: |
-        . "${{ github.action_path }}"/commons.sh
+        . "$COMMONS"
         if [[ "${{ runner.os }}" = Windows ]]; then
           fail "This action currently does not support Windows runners"
         fi
