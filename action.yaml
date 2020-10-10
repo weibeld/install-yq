@@ -48,11 +48,11 @@ runs:
         VERSION="${{ inputs.version }}"
         if [[ -z "$VERSION" ]]; then
           # Determine latest version
-          stdout=$(api /repos/mikefarah/yq/releases/latest) || fail "GitHub API request failed: $stdout"
+          stdout=$(api /repos/mikefarah/yq/releases/latest 2>&1) || fail "GitHub API request failed: $stdout"
           VERSION=$(echo "$stdout" | jq -r .tag_name)
         else
           # Verify user-supplied version
-          stdout=$(api /repos/mikefarah/yq/releases) || fail "GitHub API request failed: $stdout"
+          stdout=$(api /repos/mikefarah/yq/releases 2>&1) || fail "GitHub API request failed: $stdout"
           if ! echo "$stdout" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
             fail "$VERSION is not a valid yq version (see https://github.com/mikefarah/yq/releases for the list of valid versions)"
           fi
@@ -74,7 +74,7 @@ runs:
           esac
         else
           # Verify user-supplied binary
-          stdout=$(api /repos/mikefarah/yq/releases/tags/${{ steps.version.outputs.version }}) || fail "GitHub API request failed: $stdout"
+          stdout=$(api /repos/mikefarah/yq/releases/tags/${{ steps.version.outputs.version }} 2>&1) || fail "GitHub API request failed: $stdout"
           if ! echo "$stdout" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
             fail "$BINARY is not a valid binary of yq ${{ steps.version.outputs.version }} (see https://github.com/mikefarah/yq/releases/${{ steps.version.outputs.version }} for the list of valid binaries)"
           fi
