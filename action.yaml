@@ -50,7 +50,7 @@ runs:
           fi
         fi
         echo "Using yq version $VERSION"
-        echo "::set-output name=version::$VERSION"
+        echo "::set-output version::$VERSION"
       shell: bash
 
     - name: determine-binary
@@ -72,7 +72,7 @@ runs:
           fi
         fi
         echo "Using yq binary $BINARY"
-        echo "::set-output name=binary::$BINARY"
+        echo "::set-output binary::$BINARY"
       shell: bash
 
     - name: install
