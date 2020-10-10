@@ -17,7 +17,7 @@ runs:
         file=$(mktemp)
         cat <<EOF >"$file"
         fail() {
-          echo "::error::$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g'
+          echo "::error::\$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g'
           exit 1
         }
         EOF
