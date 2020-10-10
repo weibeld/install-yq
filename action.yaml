@@ -36,7 +36,7 @@ runs:
           fi
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
-        echo "Determined yq version \"$VERSION\""
+        echo "Using yq version \"$VERSION\""
       shell: bash
 
     - name: determine-binary
@@ -52,12 +52,12 @@ runs:
           # Verify user-supplied binary
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/"$VERSION") || { echo "$out"; exit 1; }
           if ! echo "$out" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
-            echo -e "\"$BINARY\" is not a valid binary of yq version $VERSION (find existing binaries on <https://github.com/mikefarah/yq/releases/$VERSION>)"
+            echo -e "\"$BINARY\" is not a valid binary of yq $VERSION (find existing binaries on <https://github.com/mikefarah/yq/releases/$VERSION>)"
             exit 1
           fi
         fi
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
-        echo "Determined yq binary \"$BINARY\""
+        echo "Using yq binary \"$BINARY\""
       shell: bash
 
     - name: install
