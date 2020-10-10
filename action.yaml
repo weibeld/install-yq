@@ -22,6 +22,7 @@ runs:
         }
         EOF
         echo "COMMONS=$file" >>"$GITHUB_ENV"
+      shell: bash
  
     - name: check-os
       run: |
