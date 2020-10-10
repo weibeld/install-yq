@@ -33,7 +33,7 @@ runs:
           fi
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
-        echo "yq version $VERSION"
+        echo "Using yq version $VERSION"
       shell: bash
 
     - name: determine-binary
@@ -49,24 +49,24 @@ runs:
           BINARY="${{ inputs.binary }}"
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/"$VERSION") || { echo "$out"; exit 1; }
           if ! echo "$out" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
-            echo -e "$BINARY is not a valid binary of yq release $VERSION (find existing binaries on https://github.com/mikefarah/yq/releases/$VERSION)"
+            echo -e "$BINARY is not a valid binary of yq version $VERSION (find existing binaries on 'https://github.com/mikefarah/yq/releases/$VERSION')"
             exit 1
           fi
         fi
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
-        echo "yq binary $BINARY"
+        echo "Using yq binary $BINARY"
       shell: bash
 
     - name: install
       run: |
         url=https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY"
-        echo "Install $url"
+        echo "Installing yq from $url"
         sudo wget -q -O /usr/local/bin/yq "$url" && sudo chmod +x /usr/local/bin/yq
       shell: bash
 
     - name: verify
       run: |
-        echo "Verify installation"
+        echo "Verifying installation"
         if ! stderr=$(yq 2>&1 >/dev/null); then
           echo "::error::$stderr"
           exit 1
