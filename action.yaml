@@ -1,22 +1,26 @@
 name: Install yq
-description: Installs mikefarah/yq on the runner so that it can be used by subsequent steps.
+description: Installs mikefarah/yq on the job's runner
 author: Daniel Weibel
 inputs:
   version:
-    description: The version of yq to use (by default, the latest version is used).
-    default: latest
+    description: The version of yq to install (by default, the latest version will be installed)
+    required: false
 runs:
   using: composite
   steps:
+
     - name: check-os
       run: test "${{ runner.os }}" = Windows && { echo "This action currently does not support Windows runners"; exit 1; } || exit 0
       shell: bash
+
     - name: determine-version
       run: |
-        if [[ "${{ inputs.version }}" = latest ]]; then
+        if [[ -z "${{ inputs.version }}" ]]; then
+          # Determine latest version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest) || { echo "$out"; exit 1; }
           VERSION=$(echo "$out" | jq -r .tag_name)
         else
+          # Verify user-supplied version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || { echo "$out"; exit 1; }
           if ! echo "$out" | jq -r '.[].tag_name' | grep -q '^${{ inputs.version }}$'; then
             echo -e "${{ inputs.version }} is not a valid yq version (find available versions on https://github.com/mikefarah/yq/releases)"
@@ -27,6 +31,7 @@ runs:
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
       shell: bash
+
     - name: determine-binary
       run: |
         case "${{ runner.os }}" in
@@ -35,11 +40,13 @@ runs:
         esac
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
       shell: bash
+
     - name: install
       run: |
         sudo wget -q -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY" &&
         sudo chmod +x /usr/local/bin/yq
       shell: bash
+
     - name: verify
       run: |
         if out=$(yq 2>&1); then
