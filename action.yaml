@@ -8,6 +8,9 @@ inputs:
   binary:
     description: The name of the yq binary to install (by default, 'yq_linux_amd64' is used for Linux runners and 'yq_darwin_amd64' for macOS runners)
     required: false
+  github-token:
+    description: A GitHub API access token, such as a personal access token (PAT) or an installation access token (like the GitHub Actions GITHUB_TOKEN secret), for making authenticated requests to the GitHub APIs (by default, GitHub API requests are unauthenticated)
+    required: false
 runs:
   using: composite
   steps:
@@ -20,6 +23,11 @@ runs:
         fail() {
           echo "::error::$1" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g'
           exit 1
+        }
+        api() {
+          args=(-q --content-on-error -O -)
+          [[ "${{ inputs.github-token }}" ]] && args+=(--header "Authorization: Token ${{ inputs.github-token }}")
+          wget "${args[@]}" "$GITHUB_API_URL$1"
         }
         EOF
         echo "::set-output name=util::$file"
@@ -40,11 +48,11 @@ runs:
         VERSION="${{ inputs.version }}"
         if [[ -z "$VERSION" ]]; then
           # Determine latest version
-          stdout=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/latest) || fail "GitHub API request failed: $stdout"
+          stdout=$(api /repos/mikefarah/yq/releases/latest) || fail "GitHub API request failed: $stdout"
           VERSION=$(echo "$stdout" | jq -r .tag_name)
         else
           # Verify user-supplied version
-          stdout=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || fail "GitHub API request failed: $stdout"
+          stdout=$(api /repos/mikefarah/yq/releases) || fail "GitHub API request failed: $stdout"
           if ! echo "$stdout" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
             fail "$VERSION is not a valid yq version (see https://github.com/mikefarah/yq/releases for the list of valid versions)"
           fi
@@ -66,7 +74,7 @@ runs:
           esac
         else
           # Verify user-supplied binary
-          stdout=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/${{ steps.version.outputs.version }}) || fail "GitHub API request failed: $stdout"
+          stdout=$(api /repos/mikefarah/yq/releases/tags/${{ steps.version.outputs.version }}) || fail "GitHub API request failed: $stdout"
           if ! echo "$stdout" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
             fail "$BINARY is not a valid binary of yq ${{ steps.version.outputs.version }} (see https://github.com/mikefarah/yq/releases/${{ steps.version.outputs.version }} for the list of valid binaries)"
           fi
