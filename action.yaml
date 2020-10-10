@@ -31,12 +31,12 @@ runs:
           # Verify user-supplied version
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases) || { echo "$out"; exit 1; }
           if ! echo "$out" | jq -r '.[].tag_name' | grep -q "^$VERSION$"; then
-            echo -e "'$VERSION' is not a valid yq version (find valid versions on <https://github.com/mikefarah/yq/releases>)"
+            echo -e "\"$VERSION\" is not a valid yq version (find valid versions on <https://github.com/mikefarah/yq/releases>)"
             exit 1
           fi
         fi
         echo "VERSION=$VERSION" >>"$GITHUB_ENV"
-        echo "Using yq version '$VERSION'"
+        echo "Determined yq version \"$VERSION\""
       shell: bash
 
     - name: determine-binary
@@ -52,18 +52,18 @@ runs:
           # Verify user-supplied binary
           out=$(wget -q --content-on-error -O - "$GITHUB_API_URL"/repos/mikefarah/yq/releases/tags/"$VERSION") || { echo "$out"; exit 1; }
           if ! echo "$out" | jq -r '.assets[].name' | grep -q "^$BINARY$"; then
-            echo -e "'$BINARY' is not a valid binary of yq version $VERSION (find existing binaries on <https://github.com/mikefarah/yq/releases/$VERSION>)"
+            echo -e "\"$BINARY\" is not a valid binary of yq version $VERSION (find existing binaries on <https://github.com/mikefarah/yq/releases/$VERSION>)"
             exit 1
           fi
         fi
         echo "BINARY=$BINARY" >>"$GITHUB_ENV"
-        echo "Using yq binary '$BINARY'"
+        echo "Determined yq binary \"$BINARY\""
       shell: bash
 
     - name: install
       run: |
         url=https://github.com/mikefarah/yq/releases/download/"$VERSION"/"$BINARY"
-        echo "Installing yq from $url"
+        echo "Installing yq $VERSION from $url"
         sudo wget -q -O /usr/local/bin/yq "$url" && sudo chmod +x /usr/local/bin/yq
       shell: bash
 
@@ -74,5 +74,5 @@ runs:
           echo "::error::$stderr"
           exit 1
         fi
-        echo "Installation of yq $VERSION successful"
+        echo "Installation of yq successful"
       shell: bash
