@@ -70,7 +70,7 @@ runs:
     - name: verify
       run: |
         echo "Verify installation"
-        if ! stderr=$(yq >/dev/null); then
+        if ! stderr=$(yq 2>&1 >/dev/null); then
           echo "::error::$stderr"
           exit 1
         fi
